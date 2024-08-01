@@ -16,6 +16,6 @@ export class User {
     @Column({name: 'role', default: 'user'})
     role: Role;
 
-    @OneToMany(()=> Post, (post)=>post.user )
+    @OneToMany(()=> Post, (post)=>post.user)
     posts: Post[];
 }
