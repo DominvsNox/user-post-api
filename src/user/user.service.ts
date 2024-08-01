@@ -20,23 +20,19 @@ export class UserService {
   }
 
   async create(User: User): Promise<User | undefined> {
+    const userExists = await this.findUserByName(User.name);
+            if (userExists) throw new BadRequestException('This user already exists!');
     User.password = await this.hashPwd(User.password);
-    User.role = Role.User;
-    return await this.UserRepository.save(User);
-  }
-
-  async createAdmin(User: User): Promise<User | undefined> {
-    User.password = await this.hashPwd(User.password);
-    User.role = Role.Admin;
+    User.role === Role.Admin ? User.role = Role.Admin : User.role = Role.User;
     return await this.UserRepository.save(User);
   }
 
   findAll() {
     return this.UserRepository.find({
-        relations: {
-            posts: true,
-        },
-    })
+      relations: {
+        posts: true,
+      },
+    });
   }
 
   async findUserByName(username: string) {
@@ -45,16 +41,17 @@ export class UserService {
 
   findOne(id: number) {
     return this.UserRepository.findOne({
-        where: {
-            id: id,
-        },
-        relations: {
-            posts: true,
-        },
+      where: {
+        id: id,
+      },
+      relations: {
+        posts: true,
+      },
     });
   }
 
-  async update(id: number, User: User) {
+  async update(id: number, User: User, session) {
+    if(id != session.uid && session.userRole === Role.User) throw new BadRequestException('Wrong user!');
     return await this.UserRepository.update(id, User);
   }
 
@@ -62,28 +59,26 @@ export class UserService {
     return this.UserRepository.delete({ id });
   }
 
-  async addPost(id: number, post: Post) {
+  async addPost(id: number, post: Post, session) {
+    if(id != session.uid && session.userRole === Role.User) throw new BadRequestException('Wrong user!');
     let user = await this.UserRepository.findOneBy({ id });
     let newPost = new Post();
-    //newPost.userId = id;
     newPost.text = post.text;
     newPost.user = user;
-    //user.posts.push(newPost);
-    await this.PostRepository.save(newPost);
-    return await this.UserRepository.save(user);
+    return await this.PostRepository.save(newPost);
   }
 
-  async editPost(id: number, postId: number, post: Post) {
+  async editPost(id: number, postId: number, post: Post, session) {
+    if(id != session.uid && session.userRole === Role.User) throw new BadRequestException('Wrong user!');
     let user = await this.UserRepository.findOneBy({ id });
     let editedPost = new Post();
-    //editedPost.userId = user.id;
     editedPost.text = post.text;
     editedPost.id = postId;
-    await this.PostRepository.update(postId, editedPost);
-    return await this.UserRepository.save(user);
+    return await this.PostRepository.update(postId, editedPost);
   }
 
-  async deletePost(id: number, postId: number) {
+  async deletePost(id: number, postId: number, session) {
+    if(id != session.uid && session.userRole === Role.User) throw new BadRequestException('Wrong user!');
     const user = await this.UserRepository.findOneBy({ id });
     if (user) {
       return await this.PostRepository.delete(postId);
@@ -99,11 +94,14 @@ export class UserService {
   async findAllUserPosts(id: number) {
     const user = await this.findOne(id);
     if (user) {
-        return await this.PostRepository.find({
-            relations: {
-                user: true,
-            },
-        })
+      return await this.PostRepository.find({
+          relations: {
+            user: true,
+          },
+          where: {
+            user: user
+        },
+      });
     }
   }
 }

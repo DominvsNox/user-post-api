@@ -9,9 +9,8 @@ export class Post {
     @Column({name: 'text'})
     text: string;
 
-    @ManyToOne(()=> User, (user)=> user.posts)
+    @ManyToOne(()=> User, (user)=> user.posts, {
+        onDelete: 'CASCADE'
+    })
     user: User;
-
-    // @Column({name: 'userId'})
-    // userId: number;
 }

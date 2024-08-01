@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/user.entity';
+import { Role } from 'src/enums/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -26,12 +27,14 @@ export class AuthService {
         return null;
       }
 
-    async loginUser(loginData: User) {
+    async loginUser(loginData: User, session) {
         const user = await this.userService.findUserByName(loginData.name);
         if (!user) throw new BadRequestException('Wrong data');
             const passwordCompare = await bcrypt.compare(loginData.password, user.password);
         if(!passwordCompare) throw new BadRequestException('Wrong data');
             const payload = { sub: user.id, username: user.name, role: user.role };
+            session.userRole = user.role;
+            if (user.role === Role.User) session.uid = user.id;
         return {
             access_token: await this.jwtService.signAsync(payload),
             ...payload
