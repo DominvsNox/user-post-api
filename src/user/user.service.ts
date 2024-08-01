@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from 'src/post/post.entity';
 import { Role } from 'src/enums/role.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -14,23 +15,32 @@ export class UserService {
     private readonly PostRepository: Repository<Post>,
   ) {}
 
+  async hashPwd(password: string) {
+    return bcrypt.hash(password, 10);
+  }
+
   async create(User: User): Promise<User | undefined> {
+    User.password = await this.hashPwd(User.password);
     User.role = Role.User;
     return await this.UserRepository.save(User);
   }
 
   async createAdmin(User: User): Promise<User | undefined> {
+    User.password = await this.hashPwd(User.password);
     User.role = Role.Admin;
     return await this.UserRepository.save(User);
   }
 
   findAll() {
-    //return this.UserRepository.find();
     return this.UserRepository.find({
         relations: {
             posts: true,
         },
     })
+  }
+
+  async findUserByName(username: string) {
+    return this.UserRepository.findOneBy({ name: username });
   }
 
   findOne(id: number) {
