@@ -26,6 +26,9 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## DB setup
+<p>Connect to MySQL using phpMyAdmin</p>
+
 ## Installation
 
 ```bash
