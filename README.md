@@ -28,6 +28,7 @@
 
 ## DB setup
 <p>Connect to MySQL using phpMyAdmin</p>
+<p>Connection data is available at app.module.ts file of application</p>
 
 ## Installation
 
