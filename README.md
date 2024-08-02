@@ -30,6 +30,10 @@
 <p>Connect to MySQL using phpMyAdmin</p>
 <p>Connection data is available at app.module.ts file of application</p>
 
+## App Info
+<p>After successfull installation API is available at localhost:5000/user</p>
+<p>Documentation uri: localhost:5000/api</p>
+
 ## Installation
 
 ```bash
